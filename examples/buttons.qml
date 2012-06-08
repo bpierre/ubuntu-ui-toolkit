@@ -1,105 +1,84 @@
+/*
+ * Copyright 2012 Canonical Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 import QtQuick 1.1
 import "../Components"
 
 Rectangle {
-    id: window
-
     width: 800
     height: 600
 
-    Row {
-        anchors.centerIn: parent
-        width: 400
-        spacing: 5
-        Column {
+    color: "#cccccc"
 
-            width: 210
-            spacing: 5
-            Text {
-                text: "text and icons"
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-            Button {
-                width: 200
-                height: 80
-                text: "text only (centered)\nwith border"
-                onClicked: print("clicked text-only Button")
-            }
-            Button {
-                iconSource: "call_icon.png"
-                width: 200
-                height: 80
-                onClicked: print("clicked icon-only ColoredButton")
-                iconPosition: "right"
-            }
-            Button {
-                width: 200
-                height: 100
-                iconSource: "call_icon.png"
-                text: "icon on right"
-                iconPosition: "right"
-            }
-            Button {
-                iconSource: "call_icon.png"
-                height: 50
-                width: 200
-                text: "smaller icon on left"
-                iconPosition: "left"
-            }
-        } // Column
+    Row {
+        anchors.fill: parent
+        anchors.margins: 50
+        spacing: 50
+
         Column {
-            width: 160
-            spacing: 5
-            Text {
-                text: "color and text-size"
-                anchors.horizontalCenter: parent.horizontalCenter
+            width: 200
+            spacing: 20
+
+            Button {
+                text: "Send"
             }
+
+            Button {
+                text: "Send"
+                enabled: false
+            }
+
             Button {
                 iconSource: "call_icon.png"
+                color: "#37b301"
+            }
+
+            Button {
+                text: "Edit"
+                pressedColor: "#dd4f22"
+            }
+
+            Button {
+                width: 150
+                text: "Send"
+            }
+
+            Button {
+                width: 200
+                height: 80
+                text: "Send"
+            }
+        }
+
+        Column {
+            width: 200
+            spacing: 5
+
+            Button {
+                text: "Call"
+                iconSource: "call_icon.png"
+                iconPosition: "left"
+                color: "#37b301"
+            }
+            Button {
+                text: "Call"
+                iconSource: "call_icon.png"
                 iconPosition: "right"
-                background.color: "green"
-                text: "grass color"
-                textColor: "white" }
-            Button {
-                text: "changing colors"
-                background {
-                    color: "pink"
-                    hoverColor: "yellow"
-                    pressColor: "purple"
-                }
+                color: "#37b301"
             }
-            Button {
-                text: "disabled"
-                enabled: false
-                background {
-                    color: "pink"
-                    hoverColor: "yellow"
-                    pressColor: "purple"
-                }
-                onClicked: print("this function is never called because the button is no enabled.")
-            }
-            Button {
-                text: "fixed color"
-                background {
-                    color: "orange"
-                    hoverColor: background.color
-                    pressColor: background.color
-                }
-                onClicked: print("clicked fixed color button")
-            }
-            Button {
-                text: "borderless blue";
-                background { color: "blue"; borderWidth: 0.0 }
-                textColor: "white"
-            }
-            Button {
-                text: "thick red border";
-                background { borderColor: "red"; borderWidth: 4.0 }
-                }
-            Button { text: "large red text"; textSize: "large"; textColor: "red" }
-            Button { text: "larger text"; textSize: "x-large"; textColor: "white"; background.color: "#123" }
-            Button { text: "huge text"; textSize: "xx-large"; background.color: "#abc" }
-            Button { text: "small blue text"; textSize: "small"; textColor: "blue" }
-        } // Column
-    } // Row
-} // window
+        }
+    }
+}
