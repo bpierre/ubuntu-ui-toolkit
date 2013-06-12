@@ -40,15 +40,8 @@ MainView {
             text: "Hello, world"
         }
 
-        tools: ToolbarItems {
-            Button {
-                text: "yeah"
-            }
-            Rectangle {
-                width: 50
-                height: 50
-                color: "navy"
-            }
+        tools: ToolbarActions {
+            actions: [action1, action2]
         }
     }
 }
