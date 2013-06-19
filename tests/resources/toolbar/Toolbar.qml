@@ -25,11 +25,7 @@ MainView {
         id: action1
         text: "action 1"
         onTriggered: print("one!")
-    }
-    Action {
-        id: action2
-        text: "action 2"
-        onTriggered: print("two!")
+        iconSource: Qt.resolvedUrl("../../../examples/ubuntu-ui-toolkit-gallery/call_icon.png")
     }
 
     Page {
@@ -40,8 +36,35 @@ MainView {
             text: "Hello, world"
         }
 
-        tools: ToolbarActions {
-            actions: [action1, action2]
+        tools: ToolbarItems {
+            Button { // normal-styled button.
+                anchors.verticalCenter: parent.verticalCenter
+                width: units.gu(10)
+                text: "yeah"
+                onClicked: print("upa")
+            }
+            ToolbarButton {
+                iconSource: Qt.resolvedUrl("../../../examples/ubuntu-ui-toolkit-gallery/small_avatar.png")
+                text: "oh"
+                onTriggered: print("lala")
+            }
+            ToolbarButton {
+                action: action1
+            }
+            ToolbarButton {
+                action: Action {
+                    onTriggered: print("two!")
+                    iconSource: Qt.resolvedUrl("../../../examples/ubuntu-ui-toolkit-gallery/small_avatar.png")
+                    text: "Second action"
+                }
+                text: "action 2"
+            }
+
+            back: ToolbarButton {
+                text: "cancel"
+                iconSource: Qt.resolvedUrl("../../../modules/Ubuntu/Components/artwork/back.png")
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
     }
 }
