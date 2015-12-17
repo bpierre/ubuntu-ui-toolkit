@@ -15,159 +15,88 @@
  *
  */
 
-#ifndef UCSWIPEAREAPRIVATE_H
-#define UCSWIPEAREAPRIVATE_H
+#ifndef UCSWIPEAREA_H
+#define UCSWIPEAREA_H
 
-#include "ucswipearea.h"
-#include <QtQuick/private/qquickitem_p.h>
+#include <QtQuick/QQuickItem>
+#include "ubuntugesturesglobal.h"
 
-#include "damper.h"
+// lib UbuntuGestures
+#include <UbuntuGestures/Pool>
+#include <UbuntuGestures/Timer>
 
-// Information about an active touch point
-struct UBUNTUGESTURES_EXPORT ActiveTouchInfo {
-    ActiveTouchInfo() : id(-1), startTime(-1) {}
-    bool isValid() const { return id != -1; }
-    void reset() { id = -1; }
-    int id;
-    qint64 startTime;
-};
-class UBUNTUGESTURES_EXPORT ActiveTouchesInfo {
-public:
-    ActiveTouchesInfo(const UbuntuGestures::SharedTimeSource &timeSource);
-    void update(QTouchEvent *event);
-    qint64 touchStartTime(int id);
-    bool isEmpty() const { return m_touchInfoPool.isEmpty(); }
-    qint64 mostRecentStartTime();
-    UbuntuGestures::SharedTimeSource m_timeSource;
-private:
-    void addTouchPoint(int touchId);
-    void removeTouchPoint(int touchId);
-    QString toString();
+// logging
+#include <QtCore/QLoggingCategory>
 
-    Pool<ActiveTouchInfo> m_touchInfoPool;
-};
+class TouchOwnershipEvent;
+class UnownedTouchEvent;
+class UCSwipeAreaPrivate;
 
-class UCSwipeAreaStatusListener;
-class UBUNTUGESTURES_EXPORT UCSwipeAreaPrivate : public QQuickItemPrivate
+class UCSwipeAreaPrivate;
+class UBUNTUGESTURES_EXPORT UCSwipeArea : public QQuickItem
 {
-    Q_DECLARE_PUBLIC(UCSwipeArea)
+    Q_OBJECT
 
-    Q_ENUMS(Status)
+    Q_PROPERTY(Direction direction READ direction WRITE setDirection NOTIFY directionChanged)
+    Q_PROPERTY(qreal distance READ distance NOTIFY distanceChanged)
+    Q_PROPERTY(QPointF touchPosition READ touchPosition NOTIFY touchPositionChanged)
+    Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
+    Q_PROPERTY(bool pressed READ pressed NOTIFY pressedChanged)
+    Q_PROPERTY(bool immediateRecognition
+            READ immediateRecognition
+            WRITE setImmediateRecognition
+            NOTIFY immediateRecognitionChanged)
+
+    Q_ENUMS(Direction)
 public:
-    UCSwipeAreaPrivate();
-    void init();
-    static UCSwipeAreaPrivate *get(UCSwipeArea *area)
-    {
-        return area->d_func();
-    }
-
-    void setMaxTime(int value);
-
-    void setCompositionTime(int value);
-
-    // Replaces the existing Timer with the given one.
-    //
-    // Useful for providing a fake timer when testing.
-    void setRecognitionTimer(UbuntuGestures::AbstractTimer *timer);
-
-    // Useful for testing, where a fake time source can be supplied
-    void setTimeSource(const UbuntuGestures::SharedTimeSource &timeSource);
-
-    // Describes the state of the directional drag gesture.
-    enum Status {
-        // Waiting for a new touch point to land on this area. No gesture is being processed
-        // or tracked.
-        WaitingForTouch,
-
-        // A touch point has landed on this area but it's not know yet whether it is
-        // performing a drag in the correct direction.
-        // If it's decided that the touch point is not performing a directional drag gesture,
-        // it will be rejected/ignored and status will return to WaitingForTouch.
-        Undecided, //Recognizing,
-
-        // There's a touch point in this area and it performed a drag in the correct
-        // direction.
-        //
-        // Once recognized, the gesture state will move back to WaitingForTouch only once
-        // that touch point ends. The gesture will remain in the Recognized state even if
-        // the touch point starts moving in other directions or halts.
-        Recognized,
+    enum Direction {
+        Rightwards,
+        Leftwards,
+        Downwards,
+        Upwards,
+        Horizontal,
+        Vertical
     };
 
-    void touchEvent_absent(QTouchEvent *event);
-    void touchEvent_undecided(QTouchEvent *event);
-    void touchEvent_recognized(QTouchEvent *event);
-    bool movingInRightDirection() const;
-    bool movedFarEnoughAlongGestureAxis() const;
-    bool isPastMaxDistance() const;
-    const QTouchEvent::TouchPoint *fetchTargetTouchPoint(QTouchEvent *event);
-    void setStatus(Status newStatus);
-    void updatePosition(const QPointF &point);
-    void setPublicScenePos(const QPointF &point);
-    bool isWithinTouchCompositionWindow();
-    void updateSceneDirectionVector();
-    // returns the scalar projection between the given vector (in scene coordinates)
-    // and m_sceneDirectionVector
-    qreal projectOntoDirectionVector(const QPointF &sceneVector) const;
-    void touchOwnershipEvent(TouchOwnershipEvent *event);
-    void unownedTouchEvent(UnownedTouchEvent *event);
-    void unownedTouchEvent_undecided(UnownedTouchEvent *unownedTouchEvent);
-    void watchPressedTouchPoints(const QList<QTouchEvent::TouchPoint> &touchPoints);
-    bool recognitionIsDisabled() const;
-    bool sanityCheckRecognitionProperties();
-    void setDistanceThreshold(qreal value);
-    void setPixelsPerMm(qreal pixelsPerMm);
-    QString objectName() const { return q_func()->objectName(); }
+    UCSwipeArea(QQuickItem *parent = 0);
 
-    // manage status change listeners
-    void addStatusChangeListener(UCSwipeAreaStatusListener *listener);
-    void removeStatusChangeListener(UCSwipeAreaStatusListener *listener);
+    Direction direction() const;
+    void setDirection(Direction);
 
-    QPointF startScenePos;
-    // The touch position exposed in the public API.
-    // It only starts to move once the gesture gets recognized.
-    QPointF publicScenePos;
-    // A movement damper is used in some of the gesture recognition calculations
-    // to get rid of noise or small oscillations in the touch position.
-    DampedPointF dampedScenePos;
-    QPointF previousDampedScenePos;
-    // Unit vector in scene coordinates describing the direction of the gesture recognition
-    QPointF sceneDirectionVector;
-    UbuntuGestures::SharedTimeSource timeSource;
-    ActiveTouchesInfo activeTouches;
+    qreal distance() const;
 
-    // status change listeners
-    QList<UCSwipeAreaStatusListener*> statusChangeListeners;
+    QPointF touchPosition() const;
 
-    UbuntuGestures::AbstractTimer *recognitionTimer;
+    bool dragging() const;
 
-    // How far a touch point has to move from its initial position along the gesture axis in order
-    // for it to be recognized as a directional drag.
-    qreal distanceThreshold;
-    qreal distanceThresholdSquared; // it's pow(distanceThreshold, 2)
-    // Maximum distance the gesture can go without crossing the axis-aligned distance threshold
-    qreal maxDistance;
-    qreal sceneDistance;
+    bool pressed() const;
 
-    int touchId;
-    // Maximum time (in milliseconds) the gesture can take to go beyond the distance threshold
-    int maxTime;
-    // Maximum time (in milliseconds) after the start of a given touch point where
-    // subsequent touch starts are grouped with the first one into an N-touches gesture
-    // (e.g. a two-fingers tap or drag).
-    int compositionTime;
+    bool immediateRecognition() const;
+    void setImmediateRecognition(bool enabled);
 
-    // The current status of the directional drag gesture area.
-    Status status;
-    UCSwipeArea::Direction direction;
+Q_SIGNALS:
+    void directionChanged(Direction direction);
+    void draggingChanged(bool dragging);
+    void pressedChanged(bool pressed);
+    void distanceChanged(qreal distance);
+    void touchPositionChanged(const QPointF &position);
+    void immediateRecognitionChanged(bool immediateRecognition);
 
-    bool immediateRecognition;
+protected:
+    bool event(QEvent *e) override;
+
+    void touchEvent(QTouchEvent *event) override;
+    void itemChange(ItemChange change, const ItemChangeData &value) override;
+
+    // functors
+    void giveUpIfDisabledOrInvisible();
+    void rejectGesture();
+
+private:
+    Q_DECLARE_PRIVATE(UCSwipeArea)
 };
 
-class UBUNTUGESTURES_EXPORT UCSwipeAreaStatusListener
-{
-public:
-    virtual void swipeStatusChanged(UCSwipeAreaPrivate::Status /*old*/, UCSwipeAreaPrivate::Status /*new*/) {}
-};
+Q_DECLARE_LOGGING_CATEGORY(ucSwipeArea)
+Q_DECLARE_LOGGING_CATEGORY(ucActiveTouchInfo)
 
-#endif // UCSWIPEAREAPRIVATE_H
+#endif // UCSWIPEAREA_H
